@@ -5,7 +5,7 @@ A reference implementation of a **grounded, bilingual (EN / JA) AI support agent
 The agent answers only from a knowledge base (RAG), **refuses to guess** and escalates when it doesn't know, opens and routes support tickets, and runs the model tier that fits each channel and language.
 
 > **Live demo:** https://saas-console-apq.pages.dev
-> **Writeup (Japanese):** _TODO: link to the Qiita article_
+> **Writeup (Japanese):** https://qiita.com/sooncloud/items/7dc5eaf1ea2a4b7a93dc
 
 > ⚠️ This is a **sanitized reference implementation**. All account IDs, resource IDs, and API keys are placeholders — see [Configuration](#configuration). Nothing secret is committed.
 
@@ -169,7 +169,7 @@ Most of the work went into making the **Japanese** experience production-grade �
 
 ## Writeup
 
-A full experience report on getting Japanese voice working on Vapi (in Japanese): _TODO: Qiita link_.
+A full experience report on getting Japanese voice working on Vapi (in Japanese): https://qiita.com/sooncloud/items/7dc5eaf1ea2a4b7a93dc
 
 ## License
 
