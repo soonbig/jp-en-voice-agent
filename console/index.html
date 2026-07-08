@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gatewise · Support Console</title>
+<link rel="icon" type="image/svg+xml" href="assets/gatewise-app-icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #181b20;
+    --canvas: #f6f7f9;
+    --surface: #ffffff;
+    --line: #e7e9ee;
+    --muted: #5b6472;
+    --faint: #98a0ad;
+
+    --orange: #ff6b35; --orange-soft: #fff1ea;
+    --teal: #0e7c6b; --teal-soft: #e0f4f0;
+    --indigo: #4b56d2; --indigo-soft: #ebecfb;
+    --coral: #e1483f; --coral-soft: #fce7e6;
+    --slate: #51596a; --slate-soft: #eceef3;
+
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --r: 10px;
+    --shadow: 0 1px 2px rgba(24,27,32,.04), 0 4px 16px rgba(24,27,32,.05);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ── top bar ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 58px; padding: 0 22px; background: var(--ink); border-bottom: 1px solid var(--ink);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .logo { height: 26px; width: auto; display: block; }
+  .brand .divider { width: 1px; height: 20px; background: rgba(255,255,255,.18); }
+  .brand .sub { color: rgba(255,255,255,.62); font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .user { display: flex; align-items: center; gap: 9px; padding: 5px 11px 5px 5px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; }
+  .user .av { width: 26px; height: 26px; border-radius: 50%; background: var(--orange); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .user .un { font-size: 13px; font-weight: 500; color: #fff; }
+  .user .caret { color: rgba(255,255,255,.5); font-size: 10px; }
+  .topright { display: flex; align-items: center; gap: 14px; }
+  .langtoggle { display: flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; }
+  .langtoggle .lang { font-family: inherit; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.6); background: transparent; border: 0; padding: 4px 11px; border-radius: 999px; cursor: pointer; transition: all .15s; }
+  .langtoggle .lang:hover { color: #fff; }
+  .langtoggle .lang.on { background: var(--orange); color: #fff; }
+  .langtoggle .lang:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── session strip ── */
+  .session {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding: 11px 22px; border-bottom: 1px solid var(--line); background: var(--surface);
+  }
+  .caller { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .caller .auth { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--teal); font-weight: 500; white-space: nowrap; }
+  .caller .auth::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+  .caller .who { font-size: 13px; color: var(--muted); }
+  .caller .who b { color: var(--ink); font-weight: 600; }
+  .caller .who .plan { font-family: var(--mono); font-size: 10px; padding: 1px 6px; border-radius: 5px; background: var(--slate-soft); color: var(--slate); margin-left: 4px; }
+
+  .sources { display: flex; align-items: center; gap: 8px; }
+  .sources .lbl { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); transition: all .18s; }
+  .pill .d { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+  .pill.on[data-src="knowledge"] { background: var(--teal-soft); border-color: transparent; color: var(--teal); }
+  .pill.on[data-src="crm"] { background: var(--indigo-soft); border-color: transparent; color: var(--indigo); }
+  .pill.on[data-src="human"] { background: var(--coral-soft); border-color: transparent; color: var(--coral); }
+  .pill.on[data-src="direct"] { background: var(--orange-soft); border-color: transparent; color: var(--orange); }
+  .pill.on .d { background: currentColor; }
+  .pill.on { font-weight: 600; }
+
+  /* ── workspace ── */
+  .workspace { display: grid; grid-template-columns: 1fr 360px; gap: 18px; padding: 18px 22px; align-items: start; max-width: 1240px; margin: 0 auto; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .card > .head { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+  .card > .head h2 { margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--faint); font-weight: 500; }
+  .live .d { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+  .live.on { color: var(--orange); }
+  .live.on .d { background: var(--orange); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+  /* ── conversation ── */
+  .thread { height: 420px; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 86%; }
+  .msg .meta { display: flex; align-items: center; gap: 7px; font-size: 11px; margin-bottom: 3px; }
+  .msg .role { font-weight: 600; }
+  .msg.agent .role { color: var(--orange); }
+  .msg.user .role { color: var(--slate); }
+  .msg .ch { font-family: var(--mono); font-size: 10px; color: var(--faint); }
+  .msg .bubble { font-size: 14px; color: var(--ink); }
+  .msg.user { align-self: flex-end; text-align: right; }
+  .msg.user .meta { justify-content: flex-end; }
+  .msg.user .bubble { background: var(--slate-soft); padding: 9px 13px; border-radius: 12px 12px 4px 12px; display: inline-block; text-align: left; }
+  .msg.agent .bubble { background: var(--canvas); padding: 9px 13px; border-radius: 12px 12px 12px 4px; display: inline-block; }
+  .empty { color: var(--faint); font-size: 13px; margin: auto; text-align: center; }
+  .typing { color: var(--faint); font-size: 13px; font-style: italic; padding: 0 16px 6px; height: 18px; }
+
+  .inputbar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .inputbar input {
+    flex: 1; border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; font: inherit;
+    background: var(--canvas); outline: none; transition: border-color .15s;
+  }
+  .inputbar input:focus { border-color: var(--orange); background: #fff; }
+  .btn { border: none; border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 14px; transition: opacity .15s, background .15s; white-space: nowrap; }
+  .btn.send { background: var(--orange); color: #fff; }
+  .btn.send:hover { opacity: .9; }
+  .btn.call { background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 7px; }
+  .btn.call:hover { background: var(--canvas); }
+  .btn.call.active { background: var(--coral); color: #fff; border-color: transparent; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 13px; padding: 7px 14px; }
+  .btn.ghost:hover { color: var(--ink); }
+
+  /* ── right rail ── */
+  .rail { display: flex; flex-direction: column; gap: 18px; }
+  .rail .body { padding: 6px 16px 12px; overflow-y: auto; }
+  /* request route tree */
+  .rtree { display: flex; flex-direction: column; align-items: stretch; padding: 6px 4px 8px; }
+  .rnode { border: 1px solid var(--line); background: var(--canvas); border-radius: 9px; padding: 8px 12px; transition: all .25s ease; }
+  .rnode b { display: block; font-size: 12.5px; font-weight: 600; color: var(--faint); transition: color .25s; }
+  .rnode i { display: block; font-style: normal; font-size: 11px; color: var(--faint); margin-top: 1px; }
+  .rnode.on { border-color: transparent; background: var(--ink); }
+  .rnode.on b { color: #fff; }
+  .rnode.on i { color: rgba(255,255,255,.62); }
+  .rconn { width: 2px; height: 13px; background: var(--line); align-self: center; transition: background .25s; }
+  .rconn.on { background: var(--ink); }
+  .rfork { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 13px; position: relative; }
+  .rfork::before { content: ""; position: absolute; top: -13px; left: 26%; right: 26%; height: 11px; border: 2px solid var(--line); border-bottom: 0; border-radius: 7px 7px 0 0; transition: border-color .25s; }
+  .rtree.active .rfork::before { border-color: var(--ink); }
+  .rchild { border: 1px solid var(--line); background: var(--canvas); border-radius: 9px; padding: 7px 10px; transition: all .25s ease; }
+  .rchild b { display: block; font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--faint); transition: color .25s; }
+  .rchild i { display: block; font-style: normal; font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+  .rchild#rt-knowledge.on { background: var(--teal); border-color: transparent; }
+  .rchild#rt-crm.on { background: var(--indigo); border-color: transparent; }
+  .rchild.on b, .rchild.on i { color: #fff; }
+  .tickets .body { max-height: 280px; }
+  .ticket { padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .ticket:last-child { border-bottom: none; }
+  .ticket .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ticket .id { font-family: var(--mono); font-weight: 500; font-size: 13px; }
+  .ticket .subj { font-size: 13px; margin-top: 2px; }
+  .ticket .tags { display: flex; gap: 6px; margin-top: 6px; }
+  .tag { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 5px; background: var(--slate-soft); color: var(--slate); }
+  .tag.p1 { background: var(--coral-soft); color: var(--coral); }
+  .tag.team { background: var(--indigo-soft); color: var(--indigo); }
+  .new { animation: flash 1.5s ease; }
+  @keyframes flash { 0% { background: var(--orange-soft); } 100% { background: transparent; } }
+
+  .trace .body { font-family: var(--mono); font-size: 11.5px; color: var(--slate); height: 150px; }
+  .trace .ln { padding: 1px 0; white-space: pre-wrap; word-break: break-word; }
+  .trace .ln .t { color: var(--faint); }
+  .trace .ln.src { color: var(--teal); }
+
+  /* ── handoff screen-pop ── */
+  .pop {
+    position: fixed; right: 20px; bottom: 20px; width: 360px; max-width: calc(100vw - 40px);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 16px 48px rgba(24,27,32,.22);
+    transform: translateY(140%); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s; z-index: 60; overflow: hidden;
+  }
+  .pop.show { transform: translateY(0); opacity: 1; }
+  .pop .ph { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--orange); color: #fff; }
+  .pop .ph .l { font-weight: 600; font-size: 13px; }
+  .pop .ph .x { background: none; border: none; color: #fff; font-size: 18px; line-height: 1; opacity: .9; }
+  .pop .pb { padding: 14px 16px; }
+  .pop .route { font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+  .pop .route b { color: var(--orange); }
+  .pop .route .id { font-family: var(--mono); }
+  .pop .subj { font-weight: 600; margin-bottom: 11px; }
+  .pop .slbl { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); margin-bottom: 4px; }
+  .pop .sum { font-size: 13px; line-height: 1.55; }
+
+  @media (prefers-reduced-motion: reduce) { .pop, .live.on .d, .new { transition: none; animation: none; } }
+  @media (max-width: 900px) {
+    .workspace { grid-template-columns: 1fr; }
+    .session { gap: 10px; }
+    .thread { height: 320px; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/gatewise-lockup-white.png" alt="Gatewise" />
+      <span class="divider"></span>
+      <span class="sub">Support Console</span>
+    </div>
+    <div class="topright">
+      <div class="langtoggle" id="langToggle">
+        <button class="lang on" data-lang="en">EN</button>
+        <button class="lang" data-lang="ja">日本語</button>
+      </div>
+      <div class="user">
+        <span class="av" id="uav">SC</span>
+        <span class="un" id="uname">Soon Chang</span>
+        <span class="caret">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="session">
+    <div class="caller">
+      <span class="auth">Authenticated via SSO</span>
+      <span class="who"><b id="cName">Soon Chang</b> · <span id="cMeta"></span><span class="plan" id="cPlan"></span></span>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="card conversation">
+      <div class="head">
+        <h2>Conversation</h2>
+        <span class="live" id="live"><span class="d"></span><span id="liveT">Idle</span></span>
+      </div>
+      <div class="thread" id="thread"><div class="empty">Start a call or send a message to begin.</div></div>
+      <div class="typing" id="typing"></div>
+      <div class="inputbar">
+        <input id="msg" type="text" placeholder="Message Gatewise support…" autocomplete="off" />
+        <button class="btn send" id="sendBtn">Send</button>
+        <button class="btn call" id="callBtn"><span>☎</span><span id="callT">Call</span></button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="card route-card">
+        <div class="head"><h2>Request route</h2></div>
+        <div class="body">
+          <div class="rtree" id="rtree">
+            <div class="rnode" id="rt-channel"><b>Voice</b><i>Vapi</i></div>
+            <div class="rconn" id="rc-1"></div>
+            <div class="rnode" id="rt-model"><b>AI Gateway</b><i>gpt-4o-mini decides</i></div>
+            <div class="rconn" id="rc-2"></div>
+            <div class="rnode" id="rt-worker"><b>Worker</b><i>executes the tool</i></div>
+            <div class="rfork">
+              <div class="rchild" id="rt-knowledge"><b>search_knowledge</b><i>AI Search · RAG</i></div>
+              <div class="rchild" id="rt-crm"><b>ticket tools</b><i>D1 · CRM</i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card tickets">
+        <div class="head"><h2>Tickets · D1</h2></div>
+        <div class="body" id="tickets"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card trace">
+        <div class="head"><h2>Tool trace</h2></div>
+        <div class="body" id="trace"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pop" id="pop">
+    <div class="ph"><span class="l">Agent Assist · Incoming handoff</span><button class="x" id="popX">×</button></div>
+    <div class="pb">
+      <div class="route">Routed to <b id="pTeam"></b> · <span class="id" id="pId"></span> · <span id="pPri"></span></div>
+      <div class="subj" id="pSubj"></div>
+      <div class="slbl">Context for the agent picking up</div>
+      <div class="sum" id="pSum"></div>
+    </div>
+  </div>
+
+<script src="config.js"></script>
+<script type="module">
+  import Vapi from "https://esm.sh/@vapi-ai/web";
+
+  // ── config (loaded from config.js — copy config.example.js) ──
+  const cfg = window.GATEWISE_CONFIG || {};
+  const VAPI_PUBLIC_KEY = cfg.VAPI_PUBLIC_KEY;
+  const ASSISTANT_ID_EN = cfg.ASSISTANT_ID_EN;
+  const ASSISTANT_ID_JA = cfg.ASSISTANT_ID_JA;
+  let lang = "en"; // "en" | "ja" — set by the topbar toggle
+  const WORKER_URL = cfg.WORKER_URL;
+  const USER = cfg.USER || { name: "Demo User", email: "demo@example.com", company: "Example Corp", plan: "Enterprise" };
+
+  const $ = (id) => document.getElementById(id);
+  const vapi = new Vapi(VAPI_PUBLIC_KEY);
+  let inCall = false;
+  const seenSources = new Set();
+  let chatHistory = []; // {role, content} for /chat
+
+  // ── identity card ──
+  const initials = USER.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  $("uav").textContent = initials;
+  $("uname").textContent = USER.name;
+  $("cName").textContent = USER.name;
+  $("cMeta").textContent = `${USER.company}`;
+  $("cPlan").textContent = USER.plan;
+
+  // ── source indicator ──
+  function setSource(src) {
+    document.querySelectorAll(".pill").forEach((p) => p.classList.toggle("on", p.dataset.src === src));
+  }
+  function clearSource() { document.querySelectorAll(".pill").forEach((p) => p.classList.remove("on")); }
+  // Strip a trailing _JP so Japanese tool names (search_knowledge_JP, …) map the same as English.
+  const toolToSource = (n) => {
+    n = (n || "").replace(/_JP$/, "");
+    return n === "search_knowledge" ? "knowledge"
+      : (n === "create_ticket" || n === "lookup_ticket") ? "crm"
+      : n.includes("transfer") ? "human" : "direct";
+  };
+
+  // ── request route tree ──
+  function setChannel(ch) {
+    const n = $("rt-channel"); if (!n) return;
+    n.querySelector("b").textContent = ch === "voice" ? "Voice" : "Chat";
+    n.querySelector("i").textContent = ch === "voice" ? "Vapi" : "Worker /chat";
+    setModelNode(ch);
+  }
+  // The AI Gateway node reflects the model that actually runs:
+  // Japanese voice → gpt-4o; English voice and all text chat → gpt-4o-mini.
+  function setModelNode(ch) {
+    const m = $("rt-model"); if (!m) return;
+    const model = (ch === "voice" && lang === "ja") ? "gpt-4o" : "gpt-4o-mini";
+    m.querySelector("i").textContent = model + " decides";
+  }
+  function routeReset() {
+    ["rt-channel", "rt-model", "rt-worker", "rt-knowledge", "rt-crm"].forEach((id) => { const n = $(id); if (n) n.classList.remove("on"); });
+    document.querySelectorAll(".rconn").forEach((c) => c.classList.remove("on"));
+    const tree = $("rtree"); if (tree) tree.classList.remove("active");
+  }
+  function routeBase() {
+    routeReset();
+    ["rt-channel", "rt-model"].forEach((id) => { const n = $(id); if (n) n.classList.add("on"); });
+    const c1 = $("rc-1"); if (c1) c1.classList.add("on");
+  }
+  function routeTool(kind) {
+    ["rt-channel", "rt-model", "rt-worker"].forEach((id) => { const n = $(id); if (n) n.classList.add("on"); });
+    ["rc-1", "rc-2"].forEach((id) => { const n = $(id); if (n) n.classList.add("on"); });
+    const tree = $("rtree"); if (tree) tree.classList.add("active");
+    const k = $("rt-knowledge"), c = $("rt-crm");
+    if (kind === "knowledge") { if (k) k.classList.add("on"); if (c) c.classList.remove("on"); }
+    else if (kind === "crm" || kind === "human") { if (c) c.classList.add("on"); if (k) k.classList.remove("on"); }
+  }
+
+  // ── thread ──
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function fmt(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>"); }
+  function addMsg(role, text, channel, asHtml) {
+    const t = $("thread");
+    const e = t.querySelector(".empty"); if (e) e.remove();
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + (role === "user" ? "user" : "agent");
+    const who = role === "user" ? "You" : "Agent";
+    wrap.innerHTML = `<div class="meta"><span class="role">${who}</span><span class="ch">${channel}</span></div><div class="bubble"></div>`;
+    const b = wrap.querySelector(".bubble");
+    if (asHtml) b.innerHTML = fmt(text); else b.textContent = text;
+    t.appendChild(wrap);
+    t.scrollTop = t.scrollHeight;
+  }
+
+  // ── trace ──
+  function trace(msg, cls) {
+    const el = $("trace");
+    const ln = document.createElement("div");
+    ln.className = "ln" + (cls ? " " + cls : "");
+    const ts = new Date().toLocaleTimeString();
+    ln.innerHTML = `<span class="t">${ts}</span>  `;
+    ln.appendChild(document.createTextNode(msg));
+    el.appendChild(ln);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // ── tickets ──
+  async function loadTickets(showPop) {
+    try {
+      const r = await fetch(`${WORKER_URL}/tickets`);
+      const d = await r.json();
+      const list = d.tickets || [];
+      renderTickets(list);
+      if (showPop && list[0]) showHandoff(list[0]);
+    } catch { $("tickets").innerHTML = `<div class="empty">Couldn't load tickets.</div>`; }
+  }
+  function renderTickets(list) {
+    const el = $("tickets");
+    if (!list.length) { el.innerHTML = `<div class="empty">No tickets yet.</div>`; return; }
+    const prev = el.dataset.top;
+    el.innerHTML = "";
+    list.forEach((t) => {
+      const d = document.createElement("div");
+      const isNew = prev && String(t.id) > prev;
+      d.className = "ticket" + (isNew ? " new" : "");
+      const p = (t.priority || "").toLowerCase();
+      d.innerHTML = `<div class="top"><span class="id">#${t.id}</span><span class="tag ${p === "p1" ? "p1" : ""}">${t.priority || ""}</span></div><div class="subj"></div><div class="tags"><span class="tag team">${t.team || ""}</span><span class="tag">${t.status || ""}</span></div>`;
+      d.querySelector(".subj").textContent = t.subject || "";
+      el.appendChild(d);
+    });
+    el.dataset.top = list[0] ? String(list[0].id) : "0";
+  }
+
+  // ── handoff ──
+  function showHandoff(t) {
+    $("pTeam").textContent = t.team || "Support";
+    $("pId").textContent = "#" + t.id;
+    $("pPri").textContent = t.priority || "";
+    $("pSubj").textContent = t.subject || "Support request";
+    $("pSum").textContent = t.summary || t.description || "No summary captured.";
+    $("pop").classList.add("show");
+  }
+  $("popX").addEventListener("click", () => $("pop").classList.remove("show"));
+
+  // ── voice (Vapi) ──
+  vapi.on("call-start", () => {
+    inCall = true; seenSources.clear();
+    $("live").classList.add("on"); $("liveT").textContent = "Live · voice";
+    $("callBtn").classList.add("active"); $("callT").textContent = "End";
+    document.querySelectorAll("#langToggle .lang").forEach((x) => x.disabled = true);
+    setChannel("voice"); routeBase();
+    setSource("direct"); trace("voice call started");
+  });
+  vapi.on("call-end", () => {
+    inCall = false;
+    $("live").classList.remove("on"); $("liveT").textContent = "Idle";
+    $("callBtn").classList.remove("active"); $("callT").textContent = "Call";
+    document.querySelectorAll("#langToggle .lang").forEach((x) => x.disabled = false);
+    clearSource(); routeReset(); trace("voice call ended");
+  });
+  vapi.on("error", (e) => trace("error: " + (e?.message || JSON.stringify(e))));
+  vapi.on("message", (m) => {
+    if (m.type === "transcript" && m.transcriptType === "final") {
+      addMsg(m.role, m.transcript, "voice");
+      if (m.role === "user") routeBase();
+      if (m.role === "assistant") setSource("direct");
+    }
+    if (m.type === "tool-calls" || m.type === "function-call") {
+      const calls = m.toolCalls || m.toolCallList || (m.functionCall ? [{ function: m.functionCall }] : []);
+      calls.forEach((c) => {
+        const name = (c.function?.name || c.name || "").replace(/_JP$/, ""); // normalize JA tool names
+        const args = c.function?.arguments || c.arguments;
+        setSource(toolToSource(name));
+        routeTool(toolToSource(name));
+        let pv = typeof args === "string" ? args : JSON.stringify(args || {});
+        if (pv.length > 56) pv = pv.slice(0, 56) + "…";
+        trace(`→ ${name}(${pv})`);
+        if (name === "create_ticket") setTimeout(() => loadTickets(true), 1500);
+        else if (name === "lookup_ticket") setTimeout(() => loadTickets(false), 1500);
+      });
+    }
+    if (m.type === "tool-calls-result" || m.type === "conversation-update" || m.type === "tool.completed") {
+      const blob = JSON.stringify(m);
+      [...new Set([...blob.matchAll(/\[source:\s*([^\]"\\]+)/g)].map((x) => x[1].trim()))].forEach((raw) => {
+        const f = raw.replace(/^files-saas\//, "");
+        if (!seenSources.has(f)) { seenSources.add(f); trace(`   ↳ grounded in: ${f}`, "src"); }
+      });
+    }
+  });
+
+  // ── text chat ──
+  async function sendText() {
+    const input = $("msg");
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    addMsg("user", text, "text");
+    chatHistory.push({ role: "user", content: text });
+    setChannel("chat"); routeBase();
+    $("typing").textContent = "Agent is typing…";
+    try {
+      const r = await fetch(`${WORKER_URL}/chat`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatHistory }),
+      });
+      const d = await r.json();
+      $("typing").textContent = "";
+      (d.toolsUsed || []).forEach((t) => {
+        setSource(toolToSource(t.name));
+        routeTool(toolToSource(t.name));
+        let pv = JSON.stringify(t.args || {});
+        if (pv.length > 56) pv = pv.slice(0, 56) + "…";
+        trace(`→ ${t.name}(${pv})`);
+        if (t.name === "create_ticket") setTimeout(() => loadTickets(true), 1200);
+        else if (t.name === "lookup_ticket") setTimeout(() => loadTickets(false), 1200);
+      });
+      (d.sources || []).forEach((f) => trace(`   ↳ grounded in: ${f}`, "src"));
+      addMsg("assistant", d.reply || "…", "text", true);
+      chatHistory.push({ role: "assistant", content: d.reply || "" });
+      setSource("direct");
+    } catch {
+      $("typing").textContent = "";
+      addMsg("assistant", "Something went wrong reaching support. Please try again.", "text");
+    }
+  }
+  $("sendBtn").addEventListener("click", sendText);
+  $("msg").addEventListener("keydown", (e) => {
+    // While an IME is composing (e.g. converting kana → kanji), Enter confirms
+    // the candidate — it must NOT send. isComposing covers modern browsers;
+    // keyCode 229 is the legacy IME-composition signal.
+    if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) sendText();
+  });
+
+  // ── call control ──
+  $("callBtn").addEventListener("click", () => {
+    if (inCall) { vapi.stop(); return; }
+    try {
+      const assistantId = lang === "ja" ? ASSISTANT_ID_JA : ASSISTANT_ID_EN;
+      vapi.start(assistantId, {
+        variableValues: { customerName: USER.name, customerEmail: USER.email, company: USER.company, plan: USER.plan },
+      });
+    } catch (e) { trace("start failed: " + e); }
+  });
+
+  // ── language toggle (voice assistant select) ──
+  document.querySelectorAll("#langToggle .lang").forEach((b) => {
+    b.addEventListener("click", () => {
+      if (inCall) return; // can't switch language during a live call
+      lang = b.dataset.lang;
+      document.querySelectorAll("#langToggle .lang").forEach((x) => x.classList.toggle("on", x === b));
+      $("msg").placeholder = lang === "ja" ? "Gatewise サポートにメッセージ…" : "Message Gatewise support…";
+      setModelNode("voice"); // preview the model the next voice call will use
+    });
+  });
+
+  // ── reset ──
+  $("resetBtn").addEventListener("click", () => {
+    if (inCall) vapi.stop();
+    chatHistory = [];
+    $("thread").innerHTML = '<div class="empty">Start a call or send a message to begin.</div>';
+    $("trace").innerHTML = ""; $("typing").textContent = "";
+    clearSource(); routeReset(); $("pop").classList.remove("show"); seenSources.clear();
+  });
+
+  loadTickets();
+</script>
+</body>
+</html>

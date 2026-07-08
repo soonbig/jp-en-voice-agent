@@ -1,0 +1,36 @@
+# ── Secrets — NEVER commit ──
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.key
+*.pem
+
+# Real config copied from the .example templates
+worker/wrangler.toml
+console/config.js
+
+# ── Logs & captures (may contain prompts / conversation data) ──
+*.log
+call-logs-*.json
+*-transcript*.json
+
+# ── Cloudflare / Wrangler ──
+.wrangler/
+.mf/
+dist/
+
+# ── Node ──
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

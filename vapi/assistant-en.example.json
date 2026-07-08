@@ -1,0 +1,20 @@
+{
+  "name": "gatewise-support-en",
+  "firstMessage": "Gatewise support — how can I help you today?",
+  "model": {
+    "provider": "custom-llm",
+    "url": "https://saas-agent-tools.YOUR-SUBDOMAIN.workers.dev/chat/completions",
+    "model": "openai/gpt-4o-mini",
+    "temperature": 0,
+    "maxTokens": 500,
+    "messages": [
+      { "role": "system", "content": "<<< paste the contents of prompts/system-en.md here >>>" }
+    ],
+    "toolIds": [
+      "YOUR_SEARCH_KNOWLEDGE_TOOL_ID",
+      "YOUR_CREATE_TICKET_TOOL_ID",
+      "YOUR_LOOKUP_TICKET_TOOL_ID"
+    ]
+  },
+  "voice": { "provider": "cartesia", "voiceId": "YOUR_EN_VOICE_ID" }
+}

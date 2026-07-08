@@ -1,0 +1,54 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_knowledge",
+      "description": "Search the Gatewise product knowledge base for answers about features, plans, setup, and troubleshooting. Call this BEFORE answering any question about how Gatewise works. Returns grounded passages, or NO_MATCH if nothing relevant is found.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The caller's question rephrased as a concise search query."
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    "server": { "url": "https://saas-agent-tools.YOUR-SUBDOMAIN.workers.dev/" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "create_ticket",
+      "description": "Open a support ticket. Use when the issue needs human follow-up, when it is a P1 (auth outage affecting all users, or a security issue), or when the caller asks for a human.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subject": { "type": "string", "description": "Short title of the issue." },
+          "description": { "type": "string", "description": "What the caller reported, in one or two sentences." },
+          "priority": { "type": "string", "enum": ["P1", "P2", "P3", "P4"], "description": "Severity per the support policy." },
+          "team": { "type": "string", "enum": ["Identity Engineering", "Security", "Support", "Billing", "Product"], "description": "Team to route to." },
+          "customer": { "type": "string", "description": "Caller name or organization, if known." }
+        },
+        "required": ["subject", "description", "priority", "team"]
+      }
+    },
+    "server": { "url": "https://saas-agent-tools.YOUR-SUBDOMAIN.workers.dev/" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "lookup_ticket",
+      "description": "Look up the status of an existing support ticket by its number.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ticket_id": { "type": "string", "description": "The ticket number the caller provides." }
+        },
+        "required": ["ticket_id"]
+      }
+    },
+    "server": { "url": "https://saas-agent-tools.YOUR-SUBDOMAIN.workers.dev/" }
+  }
+]

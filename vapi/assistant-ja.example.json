@@ -1,0 +1,21 @@
+{
+  "name": "gatewise-support-ja",
+  "firstMessage": "Gatewise サポートでございます。ご用件をお伺いいたします。",
+  "model": {
+    "provider": "custom-llm",
+    "url": "https://saas-agent-tools.YOUR-SUBDOMAIN.workers.dev/chat/completions",
+    "model": "openai/gpt-4o",
+    "temperature": 0,
+    "maxTokens": 500,
+    "messages": [
+      { "role": "system", "content": "<<< paste the contents of prompts/system-ja.md here >>>" }
+    ],
+    "toolIds": [
+      "YOUR_SEARCH_KNOWLEDGE_JP_TOOL_ID",
+      "YOUR_CREATE_TICKET_JP_TOOL_ID",
+      "YOUR_LOOKUP_TICKET_JP_TOOL_ID"
+    ]
+  },
+  "voice": { "provider": "azure", "voiceId": "ja-JP-NanamiNeural" },
+  "startSpeakingPlan": { "waitSeconds": 0.4 }
+}

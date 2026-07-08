@@ -1,0 +1,6 @@
+# Copy to `.dev.vars` for local development (wrangler dev).
+# `.dev.vars` is gitignored — only this .example file is committed.
+# In production, set these with `wrangler secret put ...` instead.
+
+# OpenAI API key with access to gpt-4o and gpt-4o-mini.
+OPENAI_API_KEY="sk-REPLACE_ME"

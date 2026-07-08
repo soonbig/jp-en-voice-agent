@@ -1,0 +1,38 @@
+# Copy to `wrangler.toml` and fill in your own values.
+# `wrangler.toml` is gitignored — only this .example file is committed.
+
+name = "saas-agent-tools"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Your Cloudflare account ID (Dashboard → Workers → Overview, right sidebar).
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# ── D1 (ticket store) ──
+# Create with: wrangler d1 create saas-agent-db
+[[d1_databases]]
+binding = "DB"
+database_name = "saas-agent-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# ── Workers AI (used for JA→EN query translation) ──
+[ai]
+binding = "AI"
+
+# ── AI Search / RAG binding ──
+# Bind your AI Search instance here (binding name used in code: SAAS_KB).
+# [[ai_search]]
+# binding = "SAAS_KB"
+# instance = "saas-knowledge"
+
+# ── Secrets (do NOT put these here) ──
+# Set at deploy time so they never touch the repo:
+#   wrangler secret put OPENAI_API_KEY
+# For local dev, put it in .dev.vars (gitignored):
+#   OPENAI_API_KEY = "..."
+#
+# The AI Gateway BYOK endpoint URL is referenced in src/index.js.
+# Replace the account-id segment there with your own, or move it to a var:
+# [vars]
+# GATEWAY_OPENAI_URL = "https://gateway.ai.cloudflare.com/v1/YOUR_ACCOUNT_ID/YOUR_GATEWAY/openai/chat/completions"
+# GATEWAY_CHAT_URL   = "https://gateway.ai.cloudflare.com/v1/YOUR_ACCOUNT_ID/YOUR_GATEWAY/compat/chat/completions"
